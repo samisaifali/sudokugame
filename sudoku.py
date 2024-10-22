@@ -1,5 +1,4 @@
 import tkinter as tk
-from tkinter import messagebox
 import random
 
 class SudokuGame:
@@ -11,6 +10,11 @@ class SudokuGame:
         self.original_board = [[0 for _ in range(9)] for _ in range(9)]
         self.solution_board = [[0 for _ in range(9)] for _ in range(9)]  # To store the solved board
         self.selected_cell = (0, 0)
+
+        # Create an in-window label for error messages
+        self.error_message = tk.StringVar()
+        self.error_label = tk.Label(root, textvariable=self.error_message, fg="red", font=("Arial", 12))
+        self.error_label.grid(row=2, column=0)
 
         self.create_grid()
         self.create_buttons()
@@ -47,6 +51,8 @@ class SudokuGame:
             col, row = x // 50, y // 50
             self.selected_cell = (row, col)
             self.highlight_selected_cell()
+            # Clear error message when a new cell is selected
+            self.error_message.set("")
 
     def highlight_selected_cell(self):
         self.canvas.delete("highlight")
@@ -65,11 +71,7 @@ class SudokuGame:
                     self.board[row][col] = entered_num
                     self.draw_board()
                 else:
-                    self.show_incorrect_number_popup()
-
-    def show_incorrect_number_popup(self):
-        """Show a pop-up message when an incorrect number is entered."""
-        messagebox.showerror("Incorrect Number", "The number you entered is incorrect. Try again.")
+                    self.error_message.set("Incorrect number! Try again.")  # Show error in label
 
     def create_buttons(self):
         button_frame = tk.Frame(self.root)
