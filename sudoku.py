@@ -16,9 +16,25 @@ class SudokuGame:
         self.error_label = tk.Label(root, textvariable=self.error_message, fg="red", font=("Arial", 12))
         self.error_label.grid(row=2, column=0)
 
+        # Create a timer label
+        self.time_elapsed = 0  # Track time in seconds
+        self.timer_label = tk.Label(root, text="Time: 00:00", font=("Arial", 12))
+        self.timer_label.grid(row=3, column=0)
+
+        # Start the timer
+        self.update_timer()
+
         self.create_grid()
         self.create_buttons()
         self.create_random_sudoku()
+
+    def update_timer(self):
+        """Update the timer label every second."""
+        minutes = self.time_elapsed // 60
+        seconds = self.time_elapsed % 60
+        self.timer_label.config(text=f"Time: {minutes:02}:{seconds:02}")
+        self.time_elapsed += 1
+        self.root.after(1000, self.update_timer)  # Call this function again after 1 second
 
     def create_grid(self):
         self.canvas = tk.Canvas(self.root, width=450, height=450)
@@ -89,6 +105,7 @@ class SudokuGame:
         self.solution_board = [row[:] for row in self.board]  # Store the solution
         self.remove_cells(difficulty)
         self.original_board = [row[:] for row in self.board]
+        self.time_elapsed = 0  # Reset timer when new game starts
         self.draw_board()
 
     def generate_full_sudoku(self):
