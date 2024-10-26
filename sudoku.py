@@ -13,6 +13,11 @@ class SudokuGame:
         self.solution_board = [[0 for _ in range(9)] for _ in range(9)]  # Stores the solution for validation
         self.selected_cell = (0, 0)  # Track which cell the user selects
 
+        # Difficulty and mistake tracking
+        self.difficulty = "medium"  # Default difficulty
+        self.max_mistakes = 3  # Set default max mistakes for medium difficulty
+        self.mistakes = 0  # Tracks the number of mistakes made by the user
+
         # Display error messages
         self.error_message = tk.StringVar()
         self.error_label = tk.Label(root, textvariable=self.error_message, fg="red", font=("Arial", 12))
@@ -92,10 +97,14 @@ class SudokuGame:
                     self.board[row][col] = entered_num
                     self.draw_board()  # Redraw the board with the updated number
                 else:
-                    self.error_message.set("Incorrect number! Try again.")  # Display error message
+                    self.mistakes += 1  # Increment mistakes
+                    if self.mistakes >= self.max_mistakes:  # Check if max mistakes exceeded
+                        self.end_game()  # End the game
+                    else:
+                        self.error_message.set(f"Incorrect number! Mistakes: {self.mistakes}/{self.max_mistakes}")
 
     def create_buttons(self):
-        """Creates the control buttons for the game (New Game and Solve)."""
+        """Creates the control buttons for the game (New Game, Solve, Difficulty)."""
         button_frame = tk.Frame(self.root)
         button_frame.grid(row=1, column=0, pady=10)
 
@@ -105,6 +114,32 @@ class SudokuGame:
         solve_button = tk.Button(button_frame, text="Solve", command=self.solve)
         solve_button.grid(row=0, column=1, padx=10)
 
+        easy_button = tk.Button(button_frame, text="Easy", command=lambda: self.set_difficulty("easy"))
+        easy_button.grid(row=0, column=2, padx=10)
+
+        medium_button = tk.Button(button_frame, text="Medium", command=lambda: self.set_difficulty("medium"))
+        medium_button.grid(row=0, column=3, padx=10)
+
+        hard_button = tk.Button(button_frame, text="Hard", command=lambda: self.set_difficulty("hard"))
+        hard_button.grid(row=0, column=4, padx=10)
+
+    def set_difficulty(self, difficulty):
+        """Sets the difficulty level and adjusts the max number of allowed mistakes."""
+        self.difficulty = difficulty
+        if difficulty == "easy":
+            self.max_mistakes = 5
+        elif difficulty == "medium":
+            self.max_mistakes = 3
+        else:
+            self.max_mistakes = 1
+        self.mistakes = 0  # Reset mistakes for new game
+        self.error_message.set(f"Difficulty set to {difficulty.capitalize()}")
+
+    def end_game(self):
+        """Ends the game if the user exceeds the allowed number of mistakes."""
+        self.error_message.set(f"Game Over! You made {self.mistakes} mistakes. Press 'New Game' to try again.")
+        self.root.unbind("<Key>")  # Disable further input
+
     def create_random_sudoku(self, difficulty="medium"):
         """Generates a random Sudoku puzzle and resets the timer."""
         self.board = [[0 for _ in range(9)]]  # Reset the board
@@ -113,6 +148,7 @@ class SudokuGame:
         self.remove_cells(difficulty)  # Remove cells to create the puzzle
         self.original_board = [row[:] for row in self.board]  # Store the original board (unsolved)
         self.time_elapsed = 0  # Reset the timer
+        self.mistakes = 0  # Reset mistakes
         self.draw_board()  # Draw the new puzzle
 
     def generate_full_sudoku(self):
@@ -144,10 +180,7 @@ class SudokuGame:
         return True
 
     def solve_sudoku(self):
-        """
-        Uses backtracking to solve the Sudoku puzzle.
-        This method tries to fill each empty cell with a valid number.
-        """
+        """Uses backtracking to solve the Sudoku puzzle."""
         for row in range(9):
             for col in range(9):
                 if self.board[row][col] == 0:  # Find an empty cell
@@ -159,8 +192,6 @@ class SudokuGame:
                             self.board[row][col] = 0  # Backtrack if no solution is found
                     return False  # If no number can be placed, return False
         return True  # If the board is solved, return True
-
-
 
     def remove_cells(self, difficulty="medium"):
         """Removes cells from the solved board to create the puzzle."""
