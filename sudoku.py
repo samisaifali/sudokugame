@@ -1,5 +1,5 @@
-import tkinter as tk  # Importing tkinter for GUI creation
-import random  # Importing random for generating Sudoku puzzles
+import tkinter as tk
+import random
 
 class SudokuGame:
     def __init__(self, root):
@@ -14,14 +14,15 @@ class SudokuGame:
         self.selected_cell = (0, 0)  # Track which cell the user selects
 
         # Difficulty and mistake tracking
-        self.difficulty = "medium"  # Default difficulty
-        self.max_mistakes = 3  # Set default max mistakes for medium difficulty
+        self.difficulty = None  # No difficulty set initially
+        self.max_mistakes = 0  # Set default max mistakes
         self.mistakes = 0  # Tracks the number of mistakes made by the user
 
         # Display error messages
         self.error_message = tk.StringVar()
         self.error_label = tk.Label(root, textvariable=self.error_message, fg="red", font=("Arial", 12))
         self.error_label.grid(row=2, column=0)  # Position the error message 
+        
         # Timer label and setup
         self.time_elapsed = 0  # Keeps track of time in seconds
         self.timer_label = tk.Label(root, text="Time: 00:00", font=("Arial", 12))
@@ -30,31 +31,34 @@ class SudokuGame:
         # Start the timer
         self.update_timer()
 
-        # Call functions to create the grid and control buttons
-        self.create_grid()
+        # Call function to create the control buttons
         self.create_buttons()
-        self.create_random_sudoku()  # Generate a random Sudoku puzzle
+
+        # Initially hide the grid, which will be displayed once difficulty is selected
+        self.canvas = None
 
     def update_timer(self):
         """Updates the timer label every second."""
-        minutes = self.time_elapsed // 60  # Calculate minutes
-        seconds = self.time_elapsed % 60  # Calculate seconds
-        self.timer_label.config(text=f"Time: {minutes:02}:{seconds:02}")  # Update the timer label in MM:SS
-        self.time_elapsed += 1  # Increment the time counter by 1 second
+        if self.difficulty:  # Only run the timer if a difficulty has been selected
+            minutes = self.time_elapsed // 60  # Calculate minutes
+            seconds = self.time_elapsed % 60  # Calculate seconds
+            self.timer_label.config(text=f"Time: {minutes:02}:{seconds:02}")  # Update the timer label in MM:SS
+            self.time_elapsed += 1  # Increment the time counter by 1 second
         self.root.after(1000, self.update_timer)  # Schedule this method to run again after 1 second
 
     def create_grid(self):
         """Creates the grid for the Sudoku game."""
-        self.canvas = tk.Canvas(self.root, width=450, height=450)  # Create a canvas for the 9x9 grid 
-        self.canvas.grid(row=0, column=0, padx=20, pady=20)  # Position the canvas
-        self.canvas.bind("<Button-1>", self.cell_clicked)  # Bind left-click to select cells
-        self.root.bind("<Key>", self.number_entered)  # Bind keyboard input for entering numbers
+        if not self.canvas:
+            self.canvas = tk.Canvas(self.root, width=450, height=450)  # Create a canvas for the 9x9 grid 
+            self.canvas.grid(row=0, column=0, padx=20, pady=20)  # Position the canvas
+            self.canvas.bind("<Button-1>", self.cell_clicked)  # Bind left-click to select cells
+            self.root.bind("<Key>", self.number_entered)  # Bind keyboard input for entering numbers
 
-        # Draw the lines for the grid
-        for i in range(10):
-            width = 3 if i % 3 == 0 else 1  # Thicker lines for the 3x3 subgrids
-            self.canvas.create_line(50 * i, 0, 50 * i, 450, width=width)  # Vertical lines
-            self.canvas.create_line(0, 50 * i, 450, 50 * i, width=width)  # Horizontal lines
+            # Draw the lines for the grid
+            for i in range(10):
+                width = 3 if i % 3 == 0 else 1  # Thicker lines for the 3x3 subgrids
+                self.canvas.create_line(50 * i, 0, 50 * i, 450, width=width)  # Vertical lines
+                self.canvas.create_line(0, 50 * i, 450, 50 * i, width=width)  # Horizontal lines
 
         self.draw_board()  # Draw the initial board
 
@@ -108,12 +112,7 @@ class SudokuGame:
         button_frame = tk.Frame(self.root)
         button_frame.grid(row=1, column=0, pady=10)
 
-        new_game_button = tk.Button(button_frame, text="New Game", command=self.create_random_sudoku)
-        new_game_button.grid(row=0, column=0, padx=10)
-
-        solve_button = tk.Button(button_frame, text="Solve", command=self.solve)
-        solve_button.grid(row=0, column=1, padx=10)
-
+        # Difficulty selection buttons
         easy_button = tk.Button(button_frame, text="Easy", command=lambda: self.set_difficulty("easy"))
         easy_button.grid(row=0, column=2, padx=10)
 
@@ -124,7 +123,7 @@ class SudokuGame:
         hard_button.grid(row=0, column=4, padx=10)
 
     def set_difficulty(self, difficulty):
-        """Sets the difficulty level and adjusts the max number of allowed mistakes."""
+        """Sets the difficulty level, adjusts the max mistakes, and starts the game."""
         self.difficulty = difficulty
         if difficulty == "easy":
             self.max_mistakes = 5
@@ -134,6 +133,9 @@ class SudokuGame:
             self.max_mistakes = 1
         self.mistakes = 0  # Reset mistakes for new game
         self.error_message.set(f"Difficulty set to {difficulty.capitalize()}")
+
+        # Create the Sudoku board and start the game once difficulty is selected
+        self.create_random_sudoku()
 
     def end_game(self):
         """Ends the game if the user exceeds the allowed number of mistakes."""
@@ -149,7 +151,7 @@ class SudokuGame:
         self.original_board = [row[:] for row in self.board]  # Store the original board (unsolved)
         self.time_elapsed = 0  # Reset the timer
         self.mistakes = 0  # Reset mistakes
-        self.draw_board()  # Draw the new puzzle
+        self.create_grid()  # Create the grid after difficulty selection
 
     def generate_full_sudoku(self):
         """Generates a complete, valid Sudoku solution."""
