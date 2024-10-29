@@ -19,7 +19,7 @@ class SudokuGame:
         self.mistakes = 0  # Tracks the number of mistakes made by the user
 
         # Display error messages
-        self.error_message = tk.StringVar()
+        self.error_message = tk.StringVar(value="Please choose a difficulty to start the game")  # Initial message
         self.error_label = tk.Label(root, textvariable=self.error_message, fg="red", font=("Arial", 12))
         self.error_label.grid(row=2, column=0)  # Position the error message 
         
@@ -76,12 +76,13 @@ class SudokuGame:
 
     def cell_clicked(self, event):
         """Handles cell selection when the user clicks on the grid."""
-        x, y = event.x, event.y
-        if x < 450 and y < 450:  # Ensure the click is within the grid bounds
-            col, row = x // 50, y // 50  # Calculate the cell coordinates 
-            self.selected_cell = (row, col)  # Update the selected cell
-            self.highlight_selected_cell()
-            self.error_message.set("")  # Clear any error messages when a new cell is selected
+        if self.difficulty:  # Ensure the difficulty is selected before allowing cell interaction
+            x, y = event.x, event.y
+            if x < 450 and y < 450:  # Ensure the click is within the grid bounds
+                col, row = x // 50, y // 50  # Calculate the cell coordinates 
+                self.selected_cell = (row, col)  # Update the selected cell
+                self.highlight_selected_cell()
+                self.error_message.set("")  # Clear any error messages when a new cell is selected
 
     def highlight_selected_cell(self):
         """Highlights the currently selected cell by drawing a red rectangle around it."""
@@ -93,19 +94,20 @@ class SudokuGame:
 
     def number_entered(self, event):
         """Handles keyboard input for entering numbers into the grid."""
-        if event.char.isdigit() and event.char != '0':  # Only allow numbers between 1 and 9
-            row, col = self.selected_cell
-            if self.original_board[row][col] == 0:  # Only allow changes to non-original cells
-                entered_num = int(event.char)
-                if entered_num == self.solution_board[row][col]:  # If the number is correct
-                    self.board[row][col] = entered_num
-                    self.draw_board()  # Redraw the board with the updated number
-                else:
-                    self.mistakes += 1  # Increment mistakes
-                    if self.mistakes >= self.max_mistakes:  # Check if max mistakes exceeded
-                        self.end_game()  # End the game
+        if self.difficulty:  # Ensure difficulty is selected before allowing number entry
+            if event.char.isdigit() and event.char != '0':  # Only allow numbers between 1 and 9
+                row, col = self.selected_cell
+                if self.original_board[row][col] == 0:  # Only allow changes to non-original cells
+                    entered_num = int(event.char)
+                    if entered_num == self.solution_board[row][col]:  # If the number is correct
+                        self.board[row][col] = entered_num
+                        self.draw_board()  # Redraw the board with the updated number
                     else:
-                        self.error_message.set(f"Incorrect number! Mistakes: {self.mistakes}/{self.max_mistakes}")
+                        self.mistakes += 1  # Increment mistakes
+                        if self.mistakes >= self.max_mistakes:  # Check if max mistakes exceeded
+                            self.end_game()  # End the game
+                        else:
+                            self.error_message.set(f"Incorrect number! Mistakes: {self.mistakes}/{self.max_mistakes}")
 
     def create_buttons(self):
         """Creates the control buttons for the game (New Game, Solve, Difficulty)."""
