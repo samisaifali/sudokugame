@@ -52,7 +52,6 @@ class SudokuGame:
             self.canvas = tk.Canvas(self.root, width=450, height=450)  # Create a canvas for the 9x9 grid 
             self.canvas.grid(row=0, column=0, padx=20, pady=20)  # Position the canvas
             self.canvas.bind("<Button-1>", self.cell_clicked)  # Bind left-click to select cells
-            self.root.bind("<Key>", self.number_entered)  # Bind keyboard input for entering numbers
 
             # Draw the lines for the grid
             for i in range(10):
@@ -114,6 +113,10 @@ class SudokuGame:
         button_frame = tk.Frame(self.root)
         button_frame.grid(row=1, column=0, pady=10)
 
+        # New game button
+        new_game_button = tk.Button(button_frame, text="New Game", command=self.reset_game)
+        new_game_button.grid(row=0, column=0, padx=10)
+
         # Difficulty selection buttons
         easy_button = tk.Button(button_frame, text="Easy", command=lambda: self.set_difficulty("easy"))
         easy_button.grid(row=0, column=2, padx=10)
@@ -123,6 +126,19 @@ class SudokuGame:
 
         hard_button = tk.Button(button_frame, text="Hard", command=lambda: self.set_difficulty("hard"))
         hard_button.grid(row=0, column=4, padx=10)
+
+    def reset_game(self):
+        """Resets the game and prompts the user to select a new difficulty."""
+        self.board = [[0 for _ in range(9)] for _ in range(9)]  # Reset the board
+        self.original_board = [[0 for _ in range(9)] for _ in range(9)]  # Reset the original board
+        self.solution_board = [[0 for _ in range(9)] for _ in range(9)]  # Reset the solution board
+        self.selected_cell = (0, 0)  # Reset the selected cell
+        self.mistakes = 0  # Reset mistakes
+        self.difficulty = None  # Clear difficulty
+        self.error_message.set("Please choose a difficulty to start the game")  # Prompt for difficulty selection
+        self.canvas.delete("numbers")  # Clear the board
+        self.time_elapsed = 0  # Reset the timer
+        self.root.bind("<Key>", self.number_entered)  # Re-enable number input
 
     def set_difficulty(self, difficulty):
         """Sets the difficulty level, adjusts the max mistakes, and starts the game."""
@@ -135,6 +151,7 @@ class SudokuGame:
             self.max_mistakes = 1
         self.mistakes = 0  # Reset mistakes for new game
         self.error_message.set(f"Difficulty set to {difficulty.capitalize()}")
+        self.root.bind("<Key>", self.number_entered)  # Ensure number entry is re-enabled
 
         # Create the Sudoku board and start the game once difficulty is selected
         self.create_random_sudoku()
