@@ -31,11 +31,11 @@ class SudokuGame:
         # Start the timer
         self.update_timer()
 
+        # Create an empty grid on launch
+        self.create_grid()
+
         # Call function to create the control buttons
         self.create_buttons()
-
-        # Initially hide the grid, which will be displayed once difficulty is selected
-        self.canvas = None
 
     def update_timer(self):
         """Updates the timer label every second."""
@@ -48,18 +48,18 @@ class SudokuGame:
 
     def create_grid(self):
         """Creates the grid for the Sudoku game."""
-        if not self.canvas:
-            self.canvas = tk.Canvas(self.root, width=450, height=450)  # Create a canvas for the 9x9 grid 
-            self.canvas.grid(row=0, column=0, padx=20, pady=20)  # Position the canvas
-            self.canvas.bind("<Button-1>", self.cell_clicked)  # Bind left-click to select cells
+        self.canvas = tk.Canvas(self.root, width=450, height=450)  # Create a canvas for the 9x9 grid 
+        self.canvas.grid(row=0, column=0, padx=20, pady=20)  # Position the canvas
+        self.canvas.bind("<Button-1>", self.cell_clicked)  # Bind left-click to select cells
+        self.root.bind("<Key>", self.number_entered)  # Bind keyboard input for entering numbers
 
-            # Draw the lines for the grid
-            for i in range(10):
-                width = 3 if i % 3 == 0 else 1  # Thicker lines for the 3x3 subgrids
-                self.canvas.create_line(50 * i, 0, 50 * i, 450, width=width)  # Vertical lines
-                self.canvas.create_line(0, 50 * i, 450, 50 * i, width=width)  # Horizontal lines
+        # Draw the lines for the grid
+        for i in range(10):
+            width = 3 if i % 3 == 0 else 1  # Thicker lines for the 3x3 subgrids
+            self.canvas.create_line(50 * i, 0, 50 * i, 450, width=width)  # Vertical lines
+            self.canvas.create_line(0, 50 * i, 450, 50 * i, width=width)  # Horizontal lines
 
-        self.draw_board()  # Draw the initial board
+        self.draw_board()  # Draw the initial empty board
 
     def draw_board(self):
         """Draws the numbers on the Sudoku grid."""
@@ -136,7 +136,7 @@ class SudokuGame:
         self.mistakes = 0  # Reset mistakes
         self.difficulty = None  # Clear difficulty
         self.error_message.set("Please choose a difficulty to start the game")  # Prompt for difficulty selection
-        self.canvas.delete("numbers")  # Clear the board
+        self.draw_board()  # Redraw the empty board
         self.time_elapsed = 0  # Reset the timer
         self.root.bind("<Key>", self.number_entered)  # Re-enable number input
 
@@ -170,7 +170,7 @@ class SudokuGame:
         self.original_board = [row[:] for row in self.board]  # Store the original board (unsolved)
         self.time_elapsed = 0  # Reset the timer
         self.mistakes = 0  # Reset mistakes
-        self.create_grid()  # Create the grid after difficulty selection
+        self.draw_board()  # Draw the initial board after difficulty selection
 
     def generate_full_sudoku(self):
         """Generates a complete, valid Sudoku solution."""
