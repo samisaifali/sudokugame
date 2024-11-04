@@ -158,7 +158,8 @@ class SudokuGame:
 
     def end_game(self):
         """Ends the game if the user exceeds the allowed number of mistakes."""
-        self.error_message.set(f"Game Over! You made {self.mistakes} mistakes. Press 'New Game' to try again.")
+        mistake_word = "mistake" if self.mistakes == 1 else "mistakes"
+        self.error_message.set(f"Game Over! You made {self.mistakes} {mistake_word}. Press 'New Game' to try again.")
         self.root.unbind("<Key>")  # Disable further input
 
     def create_random_sudoku(self, difficulty="medium"):
